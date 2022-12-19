@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  softether:
+    container_name: con_libreswan
+    image: phamphu232/libreswan-vpn
+    cap_add:
+      - NET_ADMIN
+    restart: always
+    ports:
+      - 500:500/udp
+      - 4500:4500/udp
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/etc/timezone:/etc/timezone:ro"
+      # - "./volumes/mnt:/mnt"
+      # - "./volumes/chain_certs:/usr/local/bin/chain_certs"
+      # - "./volumes/server_log:/usr/local/bin/server_log"
+      # - "./volumes/security_log:/usr/local/bin/security_log"
+      # - "./volumes/packet_log:/usr/local/bin/packet_log"

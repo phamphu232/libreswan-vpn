@@ -1,0 +1,81 @@
+FROM ubuntu:22.04 AS builder
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+ENV LIBRESWAN_VER=4.9 \
+        SHA256_SUM=f642dcb635e909564ca8fd99ea44ab43f60723b4d76c158ed812978c45b398b9
+
+SHELL ["/bin/bash", "-c"]
+
+# Install build tools
+RUN apt-get update && apt-get install -y \
+        libnss3-dev \
+        libnspr4-dev \
+        pkg-config \
+        libpam-dev \
+	libcap-ng-dev \
+        libcap-ng-utils \
+        libselinux-dev \
+	libcurl3-nss-dev \
+        flex \
+        bison \
+        gcc \
+        make \
+        libldns-dev \
+	libunbound-dev \
+        libnss3-tools \
+        libevent-dev \
+        xmlto \
+	libsystemd-dev \
+        wget \
+        libnss3-dev \
+        iproute2 \
+        iptables
+
+RUN wget --no-check-certificate https://github.com/libreswan/libreswan/archive/refs/tags/v${LIBRESWAN_VER}.tar.gz \
+        && echo "${SHA256_SUM}  v${LIBRESWAN_VER}.tar.gz" | sha256sum -c \
+        && mkdir -p /usr/local/src \
+        && tar -x -C /usr/local/src/ -f v${LIBRESWAN_VER}.tar.gz \
+        && mv /usr/local/src/libreswan-${LIBRESWAN_VER} /usr/local/src/libreswan \
+        && rm v${LIBRESWAN_VER}.tar.gz
+
+RUN cd /usr/local/src/libreswan && \
+        make -s base \
+        make -s install-base
+
+ENTRYPOINT ["tail", "-f", "/dev/null"]
+
+# docker build -t phamphu232/libreswan-vpn -f ./Dockerfile.dev .
+
+# FROM ubuntu:22.04
+
+# RUN apt-get update \
+#         && apt-get install -y --no-install-recommends \
+#         libncurses5 \
+#         libsodium23 \
+#         libreadline8 \
+#         libssl3 \
+#         iptables \
+#         zlib1g \
+#         && rm -rf /var/lib/apt/lists/*
+
+# WORKDIR /usr/local/bin
+
+# COPY --from=builder \
+#         /usr/local/src/libreswan/build/vpnserver \
+#         /usr/local/src/libreswan/build/vpncmd \
+#         /usr/local/src/libreswan/build/libcedar.so \
+#         /usr/local/src/libreswan/build/libmayaqua.so \
+#         /usr/local/src/libreswan/build/hamcore.se2 \
+#         ./
+
+# VOLUME /mnt
+
+# RUN mkdir -p /mnt/backup.vpn_server.config && \
+#         ln -s /mnt/vpn_server.config vpn_server.config && \
+#         ln -s /mnt/backup.vpn_server.config backup.vpn_server.config && \
+#         ln -s /mnt/lang.config lang.config
+
+# EXPOSE 500/udp 4500/udp
+
+# CMD ["/usr/local/bin/vpnserver", "execsvc"]
